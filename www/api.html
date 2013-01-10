@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Nagios API Reference</title>
+<style type="text/css">
+* {
+	margin: 0;
+	padding: 0;
+}
+body {
+	font-family: Helvetica, Arial, sans-serif;
+	font-size: 14px;
+}
+h1, h3 {
+	margin: 25px;
+}
+p {
+	margin: 15px;
+}
+table {
+	margin: 15px;
+}
+table td {
+	padding: 4px;
+	padding-right: 10px;
+	border-bottom: 1px dotted #ccc;
+}
+pre {
+	margin: 20px;
+	padding: 10px;
+	border: 1px dotted #ccc;
+}
+a {
+	color: inherit;
+}
+</style>
+</head>
+<body>
+<h1>Nagios API Reference</h1>
+<p>This API is re-caching information from Nagios every five minutes. You can access that cached information via this API.</p>
+<p>Basic API call syntax: <code>http://whatever.com/nagios/?w=stats</code></p>
+<p>The API call is broken down into three parts: the hostname, the path to the API, and the query. <code>http://whatever.com</code> is the host, <code>/nagios/</code> is the path, and <code>?w=stats</code> is the query.</p>
+<p>The query is the only thing you'll need to change. All results are in JSON format. If there is an error, it'll provide "error" as the first key in the return JSON. "Freshness" data is all standard epoch date format.</p>
+<p>"Problems" denotes that there is something wrong with one of the service checks for a host, either one of them has returned a warning state, or a non-essential service has reported an error. "Broken" means that an <b>essential</b> service check has reached a critical error state. Essential services are things like check_http having a state or 2 or 3, while non-essential services include things like disk space warnings. "Broken" is meant to denote a critical failure, while "problem" is meant to denote a non-critical issue.</p>
+<h3>API Call Options</h3>
+<p>Click for a live example.</p>
+<table>
+<tr><td><a href="http://whatever.com/nagios/?w=stats">?w=stats</a></td><td>Returns brief general stats.</td></tr>
+<tr><td><a href="http://whatever.com/nagios/?w=list">?w=list</a></td><td>Returns a full list of all hosts and services being monitored by Nagios.</td></tr>
+<tr><td><a href="http://whatever.com/nagios/?w=host&h=somesite.com">?w=host&h=somesite.com</a></td><td>Returns information about just one host, specified by the "h" GET parameter.</td></tr>
+<tr><td><a href="http://whatever.com/nagios/?w=hosts&h=ohdear.com,something.com">?w=hosts&h=ohdear.com,something.com</a></td><td>Returns information about a group of hosts, comma-separated, specified by the "h" GET parameter.</td></tr>
+<tr><td><a href="http://whatever.com/nagios/?w=groups">?w=groups</a></td><td>Returns a list of host groups being monitored by Nagios.</td></tr>
+<tr><td><a href="http://whatever.com/nagios/?w=group&g=stats-stuff">?w=group&g=stats-stuff</a></td><td>Returns a specific host group being monitored by Nagios.</td></tr>
+<tr><td><a href="http://whatever.com/nagios/?w=broken">?w=broken</a></td><td>Returns a list of hosts that are marked as "broken".</td></tr>
+<tr><td><a href="http://whatever.com/nagios/?w=problems">?w=problems</a></td><td>Returns a list of hosts that are marked as having a problem of some kind.</td></tr>
+</table>
+<h3>Host Info Format</h3>
+<pre>
+<code>Array (
+  'f' => 1347567137, // freshness (when last updated)
+  'h' => 'whatever.com', // host name
+  'n' => 'Whatever!', // friendly name (if it has one, might not)
+  's' => 0,	// current state (see below for what they mean)
+  'p' => false, // problem? (not catastrophic)
+  'b' => false, // broken?
+  'a' => false, // problem/broken acknowledged?
+  'sv' => Array ( // array of services
+    [0] => Array (
+      'n' => 'check_ping', // service name
+      's' => 0,	 // service current state (see below for what they mean)
+      'm' => 'Connect timeout after 10 seconds.', // some kind of error message from nagios, if any is available, only when s > 0
+    ),
+    [1] => ... // more services
+  )
+)</code>
+</pre>
+<h3>Host Group Info Format</h3>
+<pre>
+<code>Array (
+  'f' => 1347567137, // freshness (when last updated)
+  'n' => 'Stuff', // friendly name
+  'id' => 'stats-stuff',	// unique ID
+  'p' => false, // problem? (not catastrophic)
+  'b' => false, // broken?
+  'm' => [ 'something.com', 'whatever.com', ... ] // members of this host group
+)</code>
+</pre>
+<h3>Current State Codes</h3>
+<pre>0 = OK, 1 = WARNING, 2 = ERROR/PROBLEM, 3 = UNKNOWN</pre>
+</body>
+</html>
